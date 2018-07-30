@@ -2,6 +2,8 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 
+
+
 const Sequelize = require('sequelize')
 const sequelize = new Sequelize('employee_demo', 'indra', '1', {
     host: 'localhost',
@@ -12,6 +14,7 @@ const sequelize = new Sequelize('employee_demo', 'indra', '1', {
         idle: 10000
     }
 });
+
 
 // body parser for parsing data
 app.use(bodyParser.json());
@@ -28,7 +31,7 @@ const employees = sequelize.define('employees', {
     'birth_date': Sequelize.DATE,
     'first_name': Sequelize.STRING,
     'last_name': Sequelize.STRING,
-    'gender': Sequelize.ENUM('M','F'),
+    'gender': Sequelize.ENUM('M', 'F'),
     'hire_date': Sequelize.DATE
 }, {
     freezeTableName: true
@@ -46,8 +49,38 @@ app.get('/api/employees', (req, res) => {
     })
 })
 
+// post validation initialize
+const {
+    check,
+    validationResult
+} = require('express-validator/check');
+
 // post data
-app.post('/api/employees', (req, res) => {
+app.post('/api/employees', [
+    check('birth_date').isLength({
+        min: 7
+    }),
+    check('first_name').isLength({
+        min: 3
+    }),
+    check('last_name').isLength({
+        min: 4
+    }),
+    check('gender').isLength({
+        min: 1
+    }),
+    check('hire_date').isLength({
+        min: 7
+    })
+], (req, res) => {
+
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(422).json({
+            errors: errors.array()
+        })
+    }
+
     employees.create({
             emp_no: req.body.emp_no,
             birth_date: req.body.birth_date,
